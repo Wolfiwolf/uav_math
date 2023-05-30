@@ -191,7 +191,20 @@ void uav_orient_euler_to_q(struct Matrix *euler_angles, struct Matrix *q) {
 }
 
 void uav_orient_q_to_euler(struct Matrix *q, struct Matrix *euler_angles) {
+	float qs = q->rows[0][0];
+	float qx = q->rows[1][0];
+	float qy = q->rows[2][0];
+	float qz = q->rows[3][0];
 
+	float C23 = 2.0f * (qy * qz + qx * qs);
+	float C33 = qs * qs - qx * qx + qy * qy - qz * qz;
+	float C13 = 2.0f * (qx * qz - qy * qs);
+	float C12 = 2.0f * (qx * qy + qz * qs);
+	float C11 = qs * qs + qx * qx - qy * qy - qz * qz;
+
+	euler_angles->rows[0][0] = atan2f(C23, C33);
+	euler_angles->rows[1][0] = -asinf(C13);
+	euler_angles->rows[2][0] = atan2f(C12, C11);
 }
 
 void uav_orient_q_dot(struct Matrix *q, struct Matrix *w, struct Matrix *res, float delta_t_sec) {
