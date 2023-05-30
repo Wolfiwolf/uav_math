@@ -11,6 +11,8 @@ struct Matrix {
 
 void uav_matrix_init(struct Matrix *mat, uint8_t M, uint8_t N); 
 
+void uav_matrix_destroy(struct Matrix *mat);
+
 // MATRIX MATH
 
 void uav_matrix_add_to(struct Matrix *mat1, struct Matrix *mat2); 
@@ -28,6 +30,10 @@ void uav_matrix_scalar_multiply(struct Matrix *mat1, float scalar);
 void uav_matrix_transpose(struct Matrix *mat, struct Matrix *res); 
 
 void uav_matrix_transpose(struct Matrix *mat, struct Matrix *res); 
+
+float uav_matrix_max(struct Matrix *mat); 
+
+float uav_matrix_min(struct Matrix *mat); 
 
 // VECTOR MATH
 
