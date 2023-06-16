@@ -35,6 +35,8 @@ float uav_matrix_max(struct Matrix *mat);
 
 float uav_matrix_min(struct Matrix *mat); 
 
+void uav_matrix_copy(struct Matrix *src, struct Matrix *dest); 
+
 // VECTOR MATH
 
 float uav_vec_magnitude(struct Matrix *vec); 

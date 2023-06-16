@@ -9,7 +9,7 @@ void uav_matrix_init(struct Matrix *mat, uint8_t M, uint8_t N) {
 	mat->rows = (float**)malloc(M * sizeof(uint32_t*));
 
 	for (uint8_t i = 0; i < M; ++i) {
-		mat->rows[i] = malloc(N * sizeof(float));
+		mat->rows[i] = (float*)malloc(N * sizeof(float));
 	}
 }
 
@@ -99,6 +99,14 @@ float uav_matrix_min(struct Matrix *mat) {
 	return min;
 } 
 
+void uav_matrix_copy(struct Matrix *src, struct Matrix *dest) {
+	for (uint8_t i = 0; i < src->M; ++i) {
+		for (uint8_t j = 0; j < src->N; ++j) 
+			dest->rows[i][j] = src->rows[i][j];
+	}
+} 
+
+
 // VECTOR MATH
 
 float uav_vec_magnitude(struct Matrix *vec) {
@@ -135,6 +143,167 @@ void uav_vec_differential(struct Matrix *vec, struct Matrix *w, struct Matrix *r
 	uav_vec_cross(w, vec, res);
 	uav_matrix_scalar_multiply(res, delta_t_sec);
 } 
+
+// ROTATIONS MATH
+
+void uav_rotation_body_to_inertial(struct Matrix *vec, struct Matrix *euler_angles) {
+	struct Matrix Rx;
+	uav_matrix_init(&Rx, 3, 3);
+	struct Matrix Ry;
+	uav_matrix_init(&Ry, 3, 3);
+	struct Matrix Rz;
+	uav_matrix_init(&Rz, 3, 3);
+	struct Matrix Rxy;
+	uav_matrix_init(&Rxy, 3, 3);
+	struct Matrix R;
+	uav_matrix_init(&R, 3, 3);
+	struct Matrix Rt;
+	uav_matrix_init(&Rt, 3, 3);
+	struct Matrix temp_vec;
+	uav_matrix_init(&temp_vec, 3, 1);
+
+	float phi = euler_angles->rows[0][0];
+	float theta = euler_angles->rows[1][0];
+	float psi = euler_angles->rows[2][0];
+
+	// Rx
+
+	Rx.rows[0][0] = 1.0f;
+	Rx.rows[0][1] = 0.0f;
+	Rx.rows[0][2] = 0.0f;
+
+	Rx.rows[1][0] = 0.0f;
+	Rx.rows[1][1] = cosf(phi);
+	Rx.rows[1][2] = -sinf(phi);
+
+	Rx.rows[2][0] = 0.0f;
+	Rx.rows[2][1] = sinf(phi);
+	Rx.rows[2][2] = cosf(phi);
+
+	// Ry
+
+	Ry.rows[0][0] = cosf(theta);
+	Ry.rows[0][1] = 0.0f;
+	Ry.rows[0][2] = sinf(theta);
+
+	Ry.rows[1][0] = 0.0f;
+	Ry.rows[1][1] = 1.0f;
+	Ry.rows[1][2] = 0.0f;
+
+	Ry.rows[2][0] = -sinf(theta);
+	Ry.rows[2][1] = 0.0f;
+	Ry.rows[2][2] = cosf(theta);
+
+	// Rz
+
+	Rz.rows[0][0] = cosf(psi);
+	Rz.rows[0][1] = -sinf(psi);
+	Rz.rows[0][2] = 0.0f;
+
+	Rz.rows[1][0] = sinf(psi);
+	Rz.rows[1][1] = cosf(psi);
+	Rz.rows[1][2] = 0.0f;
+
+	Rz.rows[2][0] = 0.0f;
+	Rz.rows[2][1] = 0.0f;
+	Rz.rows[2][2] = 1.0f;
+
+	uav_matrix_multiply(&Ry, &Rx, &Rxy);
+
+
+	uav_matrix_multiply(&Rz, &Rxy, &R);
+
+	uav_matrix_transpose(&R, &Rt);
+
+
+	uav_matrix_multiply(&Rt, vec, &temp_vec);
+	uav_matrix_copy(&temp_vec, vec);
+
+	uav_matrix_destroy(&Rx);
+	uav_matrix_destroy(&Ry);
+	uav_matrix_destroy(&Rz);
+	uav_matrix_destroy(&Rxy);
+	uav_matrix_destroy(&R);
+	uav_matrix_destroy(&Rt);
+	uav_matrix_destroy(&temp_vec);
+
+}
+
+void uav_rotation_inertial_to_body(struct Matrix *vec, struct Matrix *euler_angles) {
+	struct Matrix Rx;
+	uav_matrix_init(&Rx, 3, 3);
+	struct Matrix Ry;
+	uav_matrix_init(&Ry, 3, 3);
+	struct Matrix Rz;
+	uav_matrix_init(&Rz, 3, 3);
+	struct Matrix Rxy;
+	uav_matrix_init(&Rxy, 3, 3);
+	struct Matrix R;
+	uav_matrix_init(&R, 3, 3);
+	struct Matrix temp_vec;
+	uav_matrix_init(&temp_vec, 3, 1);
+
+	float phi = euler_angles->rows[0][0];
+	float theta = euler_angles->rows[1][0];
+	float psi = euler_angles->rows[2][0];
+
+	// Rx
+
+	Rx.rows[0][0] = 1.0f;
+	Rx.rows[0][1] = 0.0f;
+	Rx.rows[0][2] = 0.0f;
+
+	Rx.rows[1][0] = 0.0f;
+	Rx.rows[1][1] = cosf(phi);
+	Rx.rows[1][2] = -sinf(phi);
+
+	Rx.rows[2][0] = 0.0f;
+	Rx.rows[2][1] = sinf(phi);
+	Rx.rows[2][2] = cosf(phi);
+
+	// Ry
+
+	Ry.rows[0][0] = cosf(theta);
+	Ry.rows[0][1] = 0.0f;
+	Ry.rows[0][2] = sinf(theta);
+
+	Ry.rows[1][0] = 0.0f;
+	Ry.rows[1][1] = 1.0f;
+	Ry.rows[1][2] = 0.0f;
+
+	Ry.rows[2][0] = -sinf(theta);
+	Ry.rows[2][1] = 0.0f;
+	Ry.rows[2][2] = cosf(theta);
+
+	// Rz
+
+	Rz.rows[0][0] = cosf(psi);
+	Rz.rows[0][1] = -sinf(psi);
+	Rz.rows[0][2] = 0.0f;
+
+	Rz.rows[1][0] = sinf(psi);
+	Rz.rows[1][1] = cosf(psi);
+	Rz.rows[1][2] = 0.0f;
+
+	Rz.rows[2][0] = 0.0f;
+	Rz.rows[2][1] = 0.0f;
+	Rz.rows[2][2] = 1.0f;
+
+
+	uav_matrix_multiply(&Ry, &Rx, &Rxy);
+
+	uav_matrix_multiply(&Rz, &Rxy, &R);
+
+	uav_matrix_multiply(&R, vec, &temp_vec);
+	uav_matrix_copy(&temp_vec, vec);
+
+	uav_matrix_destroy(&Rx);
+	uav_matrix_destroy(&Ry);
+	uav_matrix_destroy(&Rz);
+	uav_matrix_destroy(&Rxy);
+	uav_matrix_destroy(&R);
+	uav_matrix_destroy(&temp_vec);
+}
 
 // ORIENTATION MATH
 
@@ -202,6 +371,9 @@ void uav_orient_q_to_euler(struct Matrix *q, struct Matrix *euler_angles) {
 	float C12 = 2.0f * (qx * qy + qz * qs);
 	float C11 = qs * qs + qx * qx - qy * qy - qz * qz;
 
+	if (C13 >= 1.0f) C13 = 1.0f;
+	else if (C13 <= -1.0f) C13 = -1.0f;
+
 	euler_angles->rows[0][0] = atan2f(C23, C33);
 	euler_angles->rows[1][0] = -asinf(C13);
 	euler_angles->rows[2][0] = atan2f(C12, C11);
@@ -234,7 +406,6 @@ void uav_orient_q_dot(struct Matrix *q, struct Matrix *w, struct Matrix *res, fl
 	omega.rows[3][1] = wy;
 	omega.rows[3][2] = -wx;
 	omega.rows[3][3] = 0.0f;
-
 
 	uav_matrix_multiply(&omega, q, res);
 	uav_matrix_scalar_multiply(res, 0.5f * delta_t_sec);
