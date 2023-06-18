@@ -3,6 +3,8 @@
 #include <alloca.h>
 #include <math.h>
 
+#define RAD_TO_DEG 57.295779513082320876798154814105
+
 void uav_matrix_init(struct Matrix *mat, uint8_t M, uint8_t N) {
 	mat->M = M;
 	mat->N = N;
@@ -411,4 +413,37 @@ void uav_orient_q_dot(struct Matrix *q, struct Matrix *w, struct Matrix *res, fl
 	uav_matrix_scalar_multiply(res, 0.5f * delta_t_sec);
 
 	uav_matrix_destroy(&omega);
+}
+
+// COORDINATE SYSTEM TRANSFORMATIONS
+
+#define DEGREES_TO_RADIANS 0.0174532925
+#define WGS84_A 6378137.0f
+#define WGS84_E 0.0818191908426f
+
+void uav_trans_geodetic_to_ECEF(float lat, float lon, float alt, float *x, float *y, float *z) {
+    double clat = cos(lat * DEGREES_TO_RADIANS);
+    double slat = sin(lat * DEGREES_TO_RADIANS);
+    double clon = cos(lon * DEGREES_TO_RADIANS);
+    double slon = sin(lon * DEGREES_TO_RADIANS);
+
+    double N = WGS84_A / sqrt(1.0 - WGS84_E * WGS84_E * slat * slat);
+
+    *x = (N + alt) * clat * clon;
+    *y = (N + alt) * clat * slon;
+    *z = (N * (1.0 - WGS84_E * WGS84_E) + alt) * slat;
+}
+
+void uav_trans_ECEF_to_ENU(float x, float y, float z, float lat_r, float lon_r, float x_r, float y_r, float z_r, float *e, float *n, float *u) {
+    double clat = cos(lat_r * DEGREES_TO_RADIANS);
+    double slat = sin(lat_r * DEGREES_TO_RADIANS);
+    double clon = cos(lon_r * DEGREES_TO_RADIANS);
+    double slon = sin(lon_r * DEGREES_TO_RADIANS);
+    double dx = x - x_r;
+    double dy = y - y_r;
+    double dz = z - z_r;
+
+    *e = -slon*dx  + clon*dy;
+    *n = -slat*clon*dx - slat*slon*dy + clat*dz;
+    *u = clat*clon*dx + clat*slon*dy + slat*dz;
 }
