@@ -434,6 +434,40 @@ void uav_trans_geodetic_to_ECEF(float lat, float lon, float alt, float *x, float
     *z = (N * (1.0 - WGS84_E * WGS84_E) + alt) * slat;
 }
 
+void uav_trans_ECEF_to_geodetic(float x, float y, float z, float *lat, float *lon, float *alt) {
+    // WGS84 constants
+    double a = 6378137.0;
+    double f = 1.0 / 298.257223563;
+
+    // Derived constants
+    double b = a - f * a;
+    double e = sqrt(pow(a, 2.0) - pow(b, 2.0)) / a;
+    double clambda = atan2(y, x);
+    double p = sqrt(pow(x, 2.0) + pow(y, 2.0));
+    double h_old = 0.0;
+
+    // First guess with h=0 meters
+    double theta = atan2(z, p * (1.0 - pow(e, 2.0)));
+    double cs = cos(theta);
+    double sn = sin(theta);
+    double N = pow(a, 2.0) / sqrt(pow(a * cs, 2.0) + pow(b * sn, 2.0));
+    double h = p / cs - N;
+
+    while (fabs(h - h_old) > 1.0e-6) {
+        h_old = h;
+        theta = atan2(z, p * (1.0 - pow(e, 2.0) * N / (N + h)));
+        cs = cos(theta);
+        sn = sin(theta);
+        N = pow(a, 2.0) / sqrt(pow(a * cs, 2.0) + pow(b * sn, 2.0));
+        h = p / cs - N;
+    }
+
+    // Convert radians to degrees
+    *lon = clambda * RAD_TO_DEG;
+    *lat = theta * RAD_TO_DEG;
+    *alt = h;
+}
+
 void uav_trans_ECEF_to_ENU(float x, float y, float z, float lat_r, float lon_r, float x_r, float y_r, float z_r, float *e, float *n, float *u) {
     double clat = cos(lat_r * DEGREES_TO_RADIANS);
     double slat = sin(lat_r * DEGREES_TO_RADIANS);

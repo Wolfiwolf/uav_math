@@ -17,6 +17,7 @@ int main() {
 
 	uav_trans_geodetic_to_ECEF(lat, lon, alt, &x, &y, &z);
 	uav_trans_geodetic_to_ECEF(lat0, lon0, alt0, &x_r, &y_r, &z_r);
+
 	uav_trans_ECEF_to_ENU(x, y, z, lat0, lon0, x_r, y_r, z_r, &e, &n, &u);
 
 	printf("%.3f %.3f %.3f\n", lat, lon, alt);
