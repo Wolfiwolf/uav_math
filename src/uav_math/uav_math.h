@@ -69,6 +69,8 @@ void uav_trans_geodetic_to_ECEF(float lat, float lon, float alt, float *x, float
 
 void uav_trans_ECEF_to_ENU(float x, float y, float z, float lat_r, float lon_r, float x_r, float y_r, float z_r, float *e, float *n, float *u);
 
+void uav_trans_ENU_to_ECEF(float e, float n, float u, float lat_r, float lon_r, float x_r, float y_r, float z_r, float *x, float *y, float *z);
+
 
 #endif
 

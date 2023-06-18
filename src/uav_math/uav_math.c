@@ -447,3 +447,25 @@ void uav_trans_ECEF_to_ENU(float x, float y, float z, float lat_r, float lon_r, 
     *n = -slat*clon*dx - slat*slon*dy + clat*dz;
     *u = clat*clon*dx + clat*slon*dy + slat*dz;
 }
+
+void uav_trans_ENU_to_ECEF(float e, float n, float u, float lat_r, float lon_r, float x_r, float y_r, float z_r, float *x, float *y, float *z) {
+	 double a = 6378137.0;        
+    double f = 1 / 298.257223563;
+    double b = a * (1 - f);     
+
+    lat_r *= 1 / RAD_TO_DEG;
+    lon_r *= 1 / RAD_TO_DEG;
+
+    double sinRefLat = sin(lat_r);
+    double cosRefLat = cos(lat_r);
+    double sinRefLon = sin(lon_r);
+    double cosRefLon = cos(lon_r);
+
+    double dX = -sinRefLon * e - sinRefLat * cosRefLon * n + cosRefLat * cosRefLon * u;
+    double dY = cosRefLon * e - sinRefLat * sinRefLon * n + cosRefLat * sinRefLon * u;
+    double dZ = cosRefLat * n + sinRefLat * u;
+
+    *x = x_r + dX;
+    *y = y_r + dY;
+    *z = z_r + dZ;
+}
