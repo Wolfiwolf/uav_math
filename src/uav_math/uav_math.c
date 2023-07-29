@@ -149,7 +149,7 @@ void uav_vec_differential(struct Matrix *vec, struct Matrix *w, struct Matrix *r
 
 // ROTATIONS MATH
 
-void uav_rotation_body_to_inertial(struct Matrix *vec, struct Matrix *euler_angles) {
+void uav_rotation_inertial_to_body(struct Matrix *vec, struct Matrix *euler_angles) {
 	struct Matrix Rx;
 	uav_matrix_init(&Rx, 3, 3);
 	struct Matrix Ry;
@@ -232,7 +232,7 @@ void uav_rotation_body_to_inertial(struct Matrix *vec, struct Matrix *euler_angl
 
 }
 
-void uav_rotation_inertial_to_body(struct Matrix *vec, struct Matrix *euler_angles) {
+void uav_rotation_body_to_inertial(struct Matrix *vec, struct Matrix *euler_angles) {
 	struct Matrix Rx;
 	uav_matrix_init(&Rx, 3, 3);
 	struct Matrix Ry;
