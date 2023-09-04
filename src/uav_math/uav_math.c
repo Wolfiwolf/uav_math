@@ -2,26 +2,31 @@
 #include "stdlib.h"
 #include <alloca.h>
 #include <math.h>
-
+#include <stdio.h>
 
 #define RAD_TO_DEG 57.295779513082320876798154814105
 
 void uav_matrix_init(struct Matrix *mat, uint8_t M, uint8_t N) {
 	mat->M = M;
 	mat->N = N;
+    
+#ifdef UAV_MATH_USE_DYNAMIC
 	mat->rows = (float**)malloc(M * sizeof(uint32_t*));
 
 	for (uint8_t i = 0; i < M; ++i) {
 		mat->rows[i] = (float*)malloc(N * sizeof(float));
 	}
+#endif
 }
 
 void uav_matrix_destroy(struct Matrix *mat) {
+#ifdef UAV_MATH_USE_DYNAMIC
 	for (uint8_t i = 0; i < mat->M; ++i) {
 		free(mat->rows[i]);
 	}
 
 	free(mat->rows);
+#endif
 }
 
 void uav_matrix_add_to(struct Matrix *mat1, struct Matrix *mat2) {
@@ -139,7 +144,7 @@ void uav_vec_cross(struct Matrix *vec1, struct Matrix *vec2, struct Matrix *res)
 } 
 
 float uav_vec_angle_between(struct Matrix *vec1, struct Matrix *vec2) {
-	return acosf(uav_vec_dot(vec1, vec2) / (uav_vec_magnitude(vec1) * uav_vec_magnitude(vec1)));
+	return acosf(uav_vec_dot(vec1, vec2) / (uav_vec_magnitude(vec1) * uav_vec_magnitude(vec2)));
 } 
 
 void uav_vec_differential(struct Matrix *vec, struct Matrix *w, struct Matrix *res, float delta_t_sec) {

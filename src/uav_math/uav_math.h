@@ -3,11 +3,21 @@
 
 #include <stdint.h>
 
+#define UAV_MATH_USE_DYNAMIC 0 
+
+#ifdef UAV_MATH_USE_DYNAMIC
 struct Matrix {
 	uint8_t M;
 	uint8_t N;
 	float **rows;
 };
+#else
+struct Matrix {
+	uint8_t M;
+	uint8_t N;
+	float rows[4][4];
+};
+#endif
 
 void uav_matrix_init(struct Matrix *mat, uint8_t M, uint8_t N); 
 
