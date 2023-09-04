@@ -23,6 +23,9 @@ int main() {
     printf("y: %.3f\n", vec1.rows[1][0]);
     printf("z: %.3f\n", vec1.rows[2][0]);
 
+    uav_matrix_destroy(&vec1);
+    uav_matrix_destroy(&euler_angles);
+
 	return 0;
 }
 
